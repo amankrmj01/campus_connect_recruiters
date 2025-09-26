@@ -683,7 +683,7 @@ class GroupManagementController extends GetxController {
 }
 
 // Model Classes and Enums
-enum MessageType { text, image, file, voice, video, system }
+enum MessageType { text, image, file, voice, video, system, announcement }
 
 enum GroupStatus { active, archived, suspended }
 

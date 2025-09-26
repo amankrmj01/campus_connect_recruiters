@@ -14,7 +14,7 @@ class RecruitmentPipelineView extends GetView<DashboardController> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: Offset(0, 2),
           ),
@@ -172,9 +172,9 @@ class RecruitmentPipelineView extends GetView<DashboardController> {
       child: Container(
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Column(
           children: [
@@ -471,7 +471,7 @@ class RecruitmentPipelineView extends GetView<DashboardController> {
                           decoration: BoxDecoration(
                             color: _getPerformanceColor(
                               job.efficiency,
-                            ).withOpacity(0.1),
+                            ).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
@@ -521,9 +521,9 @@ class RecruitmentPipelineView extends GetView<DashboardController> {
             Row(
               children: [
                 _buildTrendLegend('Applications', Colors.blue),
-                SizedBox(width: 16),
+                SizedBox(width: 12),
                 _buildTrendLegend('Shortlisted', Colors.orange),
-                SizedBox(width: 16),
+                SizedBox(width: 12),
                 _buildTrendLegend('Hired', Colors.green),
               ],
             ),
@@ -534,14 +534,27 @@ class RecruitmentPipelineView extends GetView<DashboardController> {
 
         Container(
           height: 200,
-          child: Obx(
-            () => CustomPaint(
-              painter: PipelineTrendsPainter(
-                trends: controller.recruitmentTrends,
-              ),
-              child: Container(),
-            ),
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.grey[50],
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey[200]!),
           ),
+          child: Obx(() {
+            if (controller.recruitmentTrends.isEmpty) {
+              return Center(
+                child: Text(
+                  'No trend data available',
+                  style: TextStyle(color: Colors.grey[600]),
+                ),
+              );
+            }
+
+            return CustomPaint(
+              size: Size.infinite,
+              painter: TrendChartPainter(controller.recruitmentTrends),
+            );
+          }),
         ),
 
         SizedBox(height: 12),
@@ -552,29 +565,20 @@ class RecruitmentPipelineView extends GetView<DashboardController> {
           decoration: BoxDecoration(
             color: Colors.blue[50],
             borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.blue[200]!),
           ),
           child: Row(
             children: [
-              Icon(Icons.insights_outlined, color: Colors.blue[600]),
+              Icon(Icons.lightbulb_outlined, color: Colors.blue[700], size: 20),
               SizedBox(width: 8),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Pipeline Insights',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue[800],
-                      ),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      'Applications increased 15% this week. Consider optimizing screening process to handle higher volume.',
-                      style: TextStyle(fontSize: 11, color: Colors.blue[700]),
-                    ),
-                  ],
+                child: Text(
+                  _getTrendInsight(),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.blue[700],
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ],
@@ -590,56 +594,90 @@ class RecruitmentPipelineView extends GetView<DashboardController> {
       children: [
         Container(
           width: 12,
-          height: 2,
+          height: 12,
           decoration: BoxDecoration(
             color: color,
-            borderRadius: BorderRadius.circular(1),
+            borderRadius: BorderRadius.circular(2),
           ),
         ),
         SizedBox(width: 4),
-        Text(label, style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
       ],
     );
   }
 
-  // Helper Methods
-  String _calculateConversionRate(String stage) {
+  String _getTrendInsight() {
+    final trends = controller.recruitmentTrends;
+    if (trends.isEmpty) return 'No insights available';
+
+    // Get the last 7 days of data
+    final recentTrends = trends.length >= 7
+        ? trends.skip(trends.length - 7).toList()
+        : trends.toList();
+    final recentApplications = recentTrends
+        .map((t) => t.applications)
+        .reduce((a, b) => a + b);
+
+    // Get the previous 7 days of data
+    final previousTrends = trends.length >= 14
+        ? trends.skip(trends.length - 14).take(7).toList()
+        : trends.length >= 7
+        ? trends.take(trends.length - 7).toList()
+        : <TrendData>[];
+
+    if (previousTrends.isEmpty) {
+      return 'Current conversion rate is ${controller.applicationConversionRate.value.toStringAsFixed(1)}%.';
+    }
+
+    final previousApplications = previousTrends
+        .map((t) => t.applications)
+        .reduce((a, b) => a + b);
+
+    final growth =
+        ((recentApplications - previousApplications) /
+        previousApplications *
+        100);
+
+    if (growth > 10) {
+      return 'Applications are trending up ${growth.toStringAsFixed(1)}% this week! Consider increasing screening capacity.';
+    } else if (growth < -10) {
+      return 'Applications are down ${growth.abs().toStringAsFixed(1)}% this week. Review job posting visibility.';
+    } else {
+      return 'Application flow is stable. Current conversion rate is ${controller.applicationConversionRate.value.toStringAsFixed(1)}%.';
+    }
+  }
+
+  int _calculateConversionRate(String stage) {
     final total = controller.totalApplications.value;
-    if (total == 0) return '0';
+    if (total == 0) return 0;
 
     switch (stage) {
       case 'Screening':
-        return ((total * 0.7) / total * 100).toStringAsFixed(0);
+        return ((total * 0.7) / total * 100).round();
       case 'Shortlisted':
-        return (controller.shortlistedCandidates.value / total * 100)
-            .toStringAsFixed(0);
+        return (controller.shortlistedCandidates.value / total * 100).round();
       case 'Interviews':
-        return (controller.interviewsScheduled.value / total * 100)
-            .toStringAsFixed(0);
+        return (controller.interviewsScheduled.value / total * 100).round();
       case 'Offers':
-        return (controller.offersExtended.value / total * 100).toStringAsFixed(
-          0,
-        );
+        return (controller.offersExtended.value / total * 100).round();
       case 'Hired':
-        return (controller.candidatesHired.value / total * 100).toStringAsFixed(
-          0,
-        );
+        return (controller.candidatesHired.value / total * 100).round();
       default:
-        return '0';
+        return 0;
     }
   }
 
   Color _getPerformanceColor(double efficiency) {
     if (efficiency >= 90) return Colors.green;
-    if (efficiency >= 80) return Colors.blue;
-    if (efficiency >= 70) return Colors.orange;
+    if (efficiency >= 80) return Colors.orange;
+    if (efficiency >= 70) return Colors.blue;
     return Colors.red;
   }
 
   void _handlePipelineAction(String action) {
     switch (action) {
       case 'view_all':
-        Get.toNamed('/pipeline-detailed');
+        Get.toNamed('/pipeline-details');
         break;
       case 'export':
         Get.snackbar(
@@ -650,40 +688,17 @@ class RecruitmentPipelineView extends GetView<DashboardController> {
         );
         break;
       case 'settings':
-        _showPipelineSettings();
+        Get.toNamed('/pipeline-settings');
         break;
     }
   }
-
-  void _showPipelineSettings() {
-    Get.dialog(
-      AlertDialog(
-        title: Text('Pipeline Settings'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Configure pipeline stages and automation rules'),
-            SizedBox(height: 16),
-            // Add pipeline configuration options here
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Get.back(), child: Text('Cancel')),
-          ElevatedButton(
-            onPressed: () => Get.back(),
-            child: Text('Save Settings'),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
-// Custom Painter for Pipeline Trends
-class PipelineTrendsPainter extends CustomPainter {
+// Custom painter for trend chart
+class TrendChartPainter extends CustomPainter {
   final List<TrendData> trends;
 
-  PipelineTrendsPainter({required this.trends});
+  TrendChartPainter(this.trends);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -693,53 +708,69 @@ class PipelineTrendsPainter extends CustomPainter {
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke;
 
+    final maxApplications = trends
+        .map((t) => t.applications)
+        .reduce((a, b) => a > b ? a : b)
+        .toDouble();
+    final maxShortlisted = trends
+        .map((t) => t.shortlisted)
+        .reduce((a, b) => a > b ? a : b)
+        .toDouble();
+    final maxHired = trends
+        .map((t) => t.hired)
+        .reduce((a, b) => a > b ? a : b)
+        .toDouble();
+    final maxValue = [
+      maxApplications,
+      maxShortlisted,
+      maxHired,
+    ].reduce((a, b) => a > b ? a : b);
+
+    if (maxValue == 0) return;
+
+    final stepX = size.width / (trends.length - 1);
+
     // Draw applications line
     paint.color = Colors.blue;
-    _drawLine(
-      canvas,
-      size,
-      trends.map((t) => t.applications.toDouble()).toList(),
-      paint,
-    );
+    Path applicationsPath = Path();
+    for (int i = 0; i < trends.length; i++) {
+      final x = i * stepX;
+      final y = size.height - (trends[i].applications / maxValue * size.height);
+      if (i == 0) {
+        applicationsPath.moveTo(x, y);
+      } else {
+        applicationsPath.lineTo(x, y);
+      }
+    }
+    canvas.drawPath(applicationsPath, paint);
 
     // Draw shortlisted line
     paint.color = Colors.orange;
-    _drawLine(
-      canvas,
-      size,
-      trends.map((t) => t.shortlisted.toDouble()).toList(),
-      paint,
-    );
+    Path shortlistedPath = Path();
+    for (int i = 0; i < trends.length; i++) {
+      final x = i * stepX;
+      final y = size.height - (trends[i].shortlisted / maxValue * size.height);
+      if (i == 0) {
+        shortlistedPath.moveTo(x, y);
+      } else {
+        shortlistedPath.lineTo(x, y);
+      }
+    }
+    canvas.drawPath(shortlistedPath, paint);
 
     // Draw hired line
     paint.color = Colors.green;
-    _drawLine(
-      canvas,
-      size,
-      trends.map((t) => t.hired.toDouble()).toList(),
-      paint,
-    );
-  }
-
-  void _drawLine(Canvas canvas, Size size, List<double> data, Paint paint) {
-    if (data.isEmpty) return;
-
-    final maxValue = data.reduce((a, b) => a > b ? a : b);
-    if (maxValue == 0) return;
-
-    final path = Path();
-    for (int i = 0; i < data.length; i++) {
-      final x = (i / (data.length - 1)) * size.width;
-      final y = size.height - (data[i] / maxValue) * size.height;
-
+    Path hiredPath = Path();
+    for (int i = 0; i < trends.length; i++) {
+      final x = i * stepX;
+      final y = size.height - (trends[i].hired / maxValue * size.height);
       if (i == 0) {
-        path.moveTo(x, y);
+        hiredPath.moveTo(x, y);
       } else {
-        path.lineTo(x, y);
+        hiredPath.lineTo(x, y);
       }
     }
-
-    canvas.drawPath(path, paint);
+    canvas.drawPath(hiredPath, paint);
   }
 
   @override

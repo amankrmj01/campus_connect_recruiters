@@ -299,43 +299,33 @@ class DashboardController extends GetxController {
         filled: 1,
         applications: 178,
       ),
-      DepartmentStat(
-        department: 'Marketing',
-        openings: 3,
-        filled: 2,
-        applications: 145,
-      ),
     ];
 
     // Urgent Tasks
     urgentTasks.value = [
       UrgentTask(
         id: '1',
-        title: 'Review 12 pending applications for Senior SDE role',
+        title: 'Review Senior Developer Applications',
+        description: 'High priority applications need immediate attention',
         priority: 'High',
-        dueDate: DateTime.now().add(Duration(hours: 6)),
-        type: 'Application Review',
+        dueDate: DateTime.now().add(Duration(hours: 2)),
+        category: 'Review',
       ),
       UrgentTask(
         id: '2',
-        title: 'Schedule interviews for Data Scientist position',
+        title: 'Schedule Technical Interviews',
+        description: '5 candidates waiting for interview scheduling',
         priority: 'Medium',
         dueDate: DateTime.now().add(Duration(days: 1)),
-        type: 'Interview Scheduling',
+        category: 'Scheduling',
       ),
       UrgentTask(
         id: '3',
-        title: 'Follow up on pending offer letters',
+        title: 'Job Posting Deadline',
+        description: 'Product Manager position closes tomorrow',
         priority: 'High',
-        dueDate: DateTime.now().add(Duration(hours: 8)),
-        type: 'Offer Management',
-      ),
-      UrgentTask(
-        id: '4',
-        title: 'Update job posting for UX Designer role',
-        priority: 'Low',
-        dueDate: DateTime.now().add(Duration(days: 3)),
-        type: 'Job Management',
+        dueDate: DateTime.now().add(Duration(hours: 18)),
+        category: 'Job Management',
       ),
     ];
 
@@ -343,97 +333,59 @@ class DashboardController extends GetxController {
     notifications.value = [
       NotificationItem(
         id: '1',
-        title: 'New application received',
-        message: 'Arjun Kumar applied for Senior Software Engineer position',
-        type: 'application',
+        title: 'New Application Received',
+        message: 'Arjun Kumar applied for Senior Software Engineer',
         timestamp: DateTime.now().subtract(Duration(minutes: 15)),
+        type: 'application',
         isRead: false,
       ),
       NotificationItem(
         id: '2',
-        title: 'Interview reminder',
-        message: 'Interview with Priya Sharma scheduled in 2 hours',
+        title: 'Interview Reminder',
+        message: 'Technical interview with Priya Sharma in 1 hour',
+        timestamp: DateTime.now().subtract(Duration(minutes: 45)),
         type: 'interview',
-        timestamp: DateTime.now().subtract(Duration(hours: 1)),
         isRead: false,
       ),
       NotificationItem(
         id: '3',
-        title: 'Application deadline approaching',
-        message: 'Product Manager role closes in 5 days',
-        type: 'deadline',
-        timestamp: DateTime.now().subtract(Duration(hours: 3)),
+        title: 'Job Posting Approved',
+        message: 'UX Designer position is now live',
+        timestamp: DateTime.now().subtract(Duration(hours: 2)),
+        type: 'job',
         isRead: true,
       ),
     ];
   }
 
-  void changeTimeRange(String range) {
-    selectedTimeRange.value = range;
-    loadDashboardData(); // Reload data for new time range
-  }
+  // Computed properties
+  double get totalApplicationsGrowth => 12.5;
+
+  double get hiringEfficiency =>
+      (candidatesHired.value / totalApplications.value * 100);
+
+  int get unreadNotifications => notifications.where((n) => !n.isRead).length;
+
+  int get highPriorityTasks =>
+      urgentTasks.where((task) => task.priority == 'High').length;
 
   void selectMetricCard(int index) {
     selectedMetricCard.value = index;
   }
 
-  void handleQuickAction(String action) {
-    switch (action) {
-      case 'Post New Job':
-        Get.toNamed('/job-management');
-        break;
-      case 'Review Applications':
-        Get.toNamed('/candidate-management');
-        break;
-      case 'Schedule Interviews':
-        Get.toNamed('/interview-management');
-        break;
-      case 'Send Messages':
-        _showBulkMessageDialog();
-        break;
-      case 'Generate Report':
-        Get.toNamed('/analytics');
-        break;
-      case 'Manage Pipeline':
-        Get.toNamed('/recruitment-pipeline');
-        break;
-    }
+  void changeTimeRange(String timeRange) {
+    selectedTimeRange.value = timeRange;
+    loadDashboardData(); // Reload data for new time range
   }
 
-  void _showBulkMessageDialog() {
-    Get.dialog(
-      AlertDialog(
-        title: Text('Send Bulk Message'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Send a message to selected candidates or groups'),
-            SizedBox(height: 16),
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Message',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 3,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Get.back(), child: Text('Cancel')),
-          ElevatedButton(
-            onPressed: () {
-              Get.back();
-              Get.snackbar(
-                'Message Sent',
-                'Bulk message sent successfully',
-                backgroundColor: Colors.green,
-                colorText: Colors.white,
-              );
-            },
-            child: Text('Send'),
-          ),
-        ],
-      ),
+  void refreshDashboard() {
+    loadDashboardData();
+    Get.snackbar(
+      'Dashboard Refreshed',
+      'Latest data has been loaded',
+      backgroundColor: Colors.green,
+      colorText: Colors.white,
+      duration: Duration(seconds: 2),
     );
   }
 
@@ -441,35 +393,52 @@ class DashboardController extends GetxController {
     urgentTasks.removeWhere((task) => task.id == taskId);
     Get.snackbar(
       'Task Completed',
-      'Task marked as complete',
+      'Task has been marked as complete',
       backgroundColor: Colors.green,
       colorText: Colors.white,
+      duration: Duration(seconds: 2),
     );
   }
 
   void markNotificationRead(String notificationId) {
     final index = notifications.indexWhere((n) => n.id == notificationId);
     if (index != -1) {
-      notifications[index] = notifications[index].copyWith(isRead: true);
+      notifications[index] = NotificationItem(
+        id: notifications[index].id,
+        title: notifications[index].title,
+        message: notifications[index].message,
+        timestamp: notifications[index].timestamp,
+        type: notifications[index].type,
+        isRead: true,
+      );
     }
   }
 
-  void refreshDashboard() {
-    loadDashboardData();
+  void handleQuickAction(String action) {
+    switch (action) {
+      case 'Post New Job':
+        Get.toNamed('/job-management', arguments: {'tab': 1});
+        break;
+      case 'Review Applications':
+        Get.toNamed('/candidate-management');
+        break;
+      case 'Schedule Interviews':
+        Get.toNamed('/interview-scheduling');
+        break;
+      case 'Send Messages':
+        Get.toNamed('/group-management');
+        break;
+      case 'Generate Report':
+        Get.toNamed('/analytics');
+        break;
+      case 'Manage Pipeline':
+        Get.toNamed('/pipeline-management');
+        break;
+    }
   }
-
-  // Getters for computed values
-  int get unreadNotifications => notifications.where((n) => !n.isRead).length;
-
-  int get highPriorityTasks =>
-      urgentTasks.where((t) => t.priority == 'High').length;
-
-  double get totalApplicationsGrowth => 12.5; // Mock calculation
-  double get hiringEfficiency =>
-      (candidatesHired.value / totalApplications.value) * 100;
 }
 
-// Data Models
+// Data Model Classes
 class JobSummary {
   final String id;
   final String title;
@@ -589,16 +558,18 @@ class DepartmentStat {
 class UrgentTask {
   final String id;
   final String title;
+  final String description;
   final String priority;
   final DateTime dueDate;
-  final String type;
+  final String category;
 
   UrgentTask({
     required this.id,
     required this.title,
+    required this.description,
     required this.priority,
     required this.dueDate,
-    required this.type,
+    required this.category,
   });
 }
 
@@ -606,34 +577,16 @@ class NotificationItem {
   final String id;
   final String title;
   final String message;
-  final String type;
   final DateTime timestamp;
+  final String type;
   final bool isRead;
 
   NotificationItem({
     required this.id,
     required this.title,
     required this.message,
-    required this.type,
     required this.timestamp,
+    required this.type,
     required this.isRead,
   });
-
-  NotificationItem copyWith({
-    String? id,
-    String? title,
-    String? message,
-    String? type,
-    DateTime? timestamp,
-    bool? isRead,
-  }) {
-    return NotificationItem(
-      id: id ?? this.id,
-      title: title ?? this.title,
-      message: message ?? this.message,
-      type: type ?? this.type,
-      timestamp: timestamp ?? this.timestamp,
-      isRead: isRead ?? this.isRead,
-    );
-  }
 }

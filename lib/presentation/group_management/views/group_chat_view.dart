@@ -259,7 +259,7 @@ class GroupChatView extends GetView<GroupManagementController> {
                               padding: EdgeInsets.all(8),
                               margin: EdgeInsets.only(bottom: 8),
                               decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.1),
+                                color: Colors.black.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
@@ -341,7 +341,7 @@ class GroupChatView extends GetView<GroupManagementController> {
         return Container(
           padding: EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(6),
           ),
           child: Row(
@@ -354,7 +354,8 @@ class GroupChatView extends GetView<GroupManagementController> {
               ),
               SizedBox(width: 4),
               Text(
-                message.fileName ?? 'File attachment',
+                message.content,
+                // Using content instead of fileName since fileName property doesn't exist
                 style: TextStyle(
                   fontSize: 12,
                   color: isCurrentUser ? Colors.white70 : Colors.grey[600],
@@ -378,7 +379,7 @@ class GroupChatView extends GetView<GroupManagementController> {
         return Container(
           padding: EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.orange.withOpacity(0.1),
+            color: Colors.orange.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(6),
           ),
           child: Row(

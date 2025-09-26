@@ -58,13 +58,13 @@ class HomeController extends GetxController {
       selectedIcon: Icons.groups,
       route: '/group-management',
     ),
-    NavigationItem(
-      id: 'form_builder',
-      title: 'Form Builder',
-      icon: Icons.build_outlined,
-      selectedIcon: Icons.build,
-      route: '/form-builder',
-    ),
+    // NavigationItem(
+    //   id: 'form_builder',
+    //   title: 'Form Builder',
+    //   icon: Icons.build_outlined,
+    //   selectedIcon: Icons.build,
+    //   route: '/form-builder',
+    // ),
     NavigationItem(
       id: 'analytics',
       title: 'Analytics & Reports',
