@@ -3,36 +3,73 @@ import 'package:get/get.dart';
 
 import '../controllers/candidate_management.controller.dart';
 
-class ShortlistingPanelView extends GetView<CandidateManagementController> {
+class ShortlistingPanelView extends StatefulWidget {
   const ShortlistingPanelView({super.key});
 
   @override
+  State<ShortlistingPanelView> createState() => _ShortlistingPanelViewState();
+}
+
+class _ShortlistingPanelViewState extends State<ShortlistingPanelView>
+    with TickerProviderStateMixin {
+  late TabController _tabController;
+  final CandidateManagementController controller =
+      Get.find<CandidateManagementController>();
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Colors.grey[50],
-      child: Column(
-        children: [
-          // Header
-          _buildHeader(),
+    return GetBuilder<CandidateManagementController>(
+      builder: (controller) {
+        return Container(
+          color: Colors.grey[50],
+          child: Column(
+            children: [
+              // Header
+              _buildHeader(),
 
-          // Content Area
-          Expanded(
-            child: Row(
-              children: [
-                // Shortlisted Candidates List
-                Expanded(flex: 2, child: _buildShortlistedCandidatesList()),
-
-                // Shortlisting Tools Panel
-                Container(
-                  width: 350,
-                  color: Colors.white,
-                  child: _buildShortlistingTools(),
+              // Tab Bar for different views
+              Container(
+                color: Colors.white,
+                child: TabBar(
+                  controller: _tabController,
+                  labelColor: Colors.blue[600],
+                  unselectedLabelColor: Colors.grey[600],
+                  indicatorColor: Colors.blue[600],
+                  tabs: [
+                    Tab(text: 'Shortlisted'),
+                    Tab(text: 'Top Candidates'),
+                    Tab(text: 'Recently Added'),
+                  ],
                 ),
-              ],
-            ),
+              ),
+
+              // Content Area
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildShortlistedTab(),
+                    _buildTopCandidatesTab(),
+                    _buildRecentlyAddedTab(),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -92,46 +129,6 @@ class ShortlistingPanelView extends GetView<CandidateManagementController> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildShortlistedCandidatesList() {
-    return Column(
-      children: [
-        // Tab Bar for different views
-        Container(
-          color: Colors.white,
-          child: TabBar(
-            controller: TabController(
-              length: 3,
-              vsync: Scaffold.of(Get.context!),
-            ),
-            labelColor: Colors.blue[600],
-            unselectedLabelColor: Colors.grey[600],
-            indicatorColor: Colors.blue[600],
-            tabs: [
-              Tab(text: 'Shortlisted'),
-              Tab(text: 'Top Candidates'),
-              Tab(text: 'Recently Added'),
-            ],
-          ),
-        ),
-
-        // Content Area
-        Expanded(
-          child: TabBarView(
-            controller: TabController(
-              length: 3,
-              vsync: Scaffold.of(Get.context!),
-            ),
-            children: [
-              _buildShortlistedTab(),
-              _buildTopCandidatesTab(),
-              _buildRecentlyAddedTab(),
-            ],
-          ),
-        ),
-      ],
     );
   }
 

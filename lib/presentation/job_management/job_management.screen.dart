@@ -5,53 +5,80 @@ import 'controllers/job_management.controller.dart';
 import 'views/create_job_view.dart';
 import 'views/job_list_view.dart';
 
-class JobManagementScreen extends GetView<JobManagementController> {
+class JobManagementScreen extends StatefulWidget {
   const JobManagementScreen({super.key});
 
   @override
+  State<JobManagementScreen> createState() => _JobManagementScreenState();
+}
+
+class _JobManagementScreenState extends State<JobManagementScreen>
+    with TickerProviderStateMixin {
+  late TabController _tabController;
+  final JobManagementController controller =
+      Get.find<JobManagementController>();
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 4, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      body: Column(
-        children: [
-          // Header Section
-          _buildHeader(),
+    return GetBuilder<JobManagementController>(
+      builder: (controller) {
+        return Container(
+          color: Colors.grey[50],
+          child: Column(
+            children: [
+              // Header Section
+              _buildHeader(),
 
-          // Tab Bar
-          _buildTabBar(),
+              // Tab Bar
+              _buildTabBar(),
 
-          // Content Area
-          Expanded(
-            child: Obx(() {
-              if (controller.isLoading.value && controller.allJobs.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 16),
-                      Text('Loading jobs...'),
-                    ],
-                  ),
-                );
-              }
+              // Content Area
+              Expanded(
+                child: Obx(() {
+                  if (controller.isLoading.value &&
+                      controller.allJobs.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 16),
+                          Text('Loading jobs...'),
+                        ],
+                      ),
+                    );
+                  }
 
-              switch (controller.selectedTab.value) {
-                case 0:
-                  return JobListView();
-                case 1:
-                  return CreateJobView();
-                case 2:
-                  return _buildAnalyticsView();
-                case 3:
-                  return _buildSettingsView();
-                default:
-                  return JobListView();
-              }
-            }),
+                  switch (controller.selectedTab.value) {
+                    case 0:
+                      return JobListView();
+                    case 1:
+                      return CreateJobView();
+                    case 2:
+                      return _buildAnalyticsView();
+                    case 3:
+                      return _buildSettingsView();
+                    default:
+                      return JobListView();
+                  }
+                }),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -316,7 +343,7 @@ class JobManagementScreen extends GetView<JobManagementController> {
 
   Widget _buildTabBar() {
     final tabs = [
-      {'title': 'All Jobs', 'icon': Icons.work_outlined},
+      {'title': 'Active Jobs', 'icon': Icons.work_outlined},
       {'title': 'Create Job', 'icon': Icons.add_circle_outlined},
       {'title': 'Analytics', 'icon': Icons.analytics_outlined},
       {'title': 'Settings', 'icon': Icons.settings_outlined},
@@ -325,11 +352,8 @@ class JobManagementScreen extends GetView<JobManagementController> {
     return Container(
       color: Colors.white,
       child: TabBar(
-        controller: TabController(
-          length: tabs.length,
-          vsync: Scaffold.of(Get.context!),
-        ),
-        onTap: controller.changeTab,
+        controller: _tabController,
+        onTap: Get.find<JobManagementController>().changeTab,
         labelColor: Colors.blue[600],
         unselectedLabelColor: Colors.grey[600],
         indicatorColor: Colors.blue[600],

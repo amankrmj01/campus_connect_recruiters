@@ -682,7 +682,11 @@ class GroupManagementController extends GetxController {
   }
 }
 
-// Data Models
+// Model Classes and Enums
+enum MessageType { text, image, file, voice, video, system }
+
+enum GroupStatus { active, archived, suspended }
+
 class RecruitmentGroup {
   final String id;
   final String name;
@@ -773,6 +777,30 @@ class GroupMember {
     required this.joinedAt,
     required this.permissions,
   });
+
+  GroupMember copyWith({
+    String? id,
+    String? name,
+    String? email,
+    String? role,
+    String? avatar,
+    bool? isOnline,
+    DateTime? lastSeen,
+    DateTime? joinedAt,
+    List<String>? permissions,
+  }) {
+    return GroupMember(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      role: role ?? this.role,
+      avatar: avatar ?? this.avatar,
+      isOnline: isOnline ?? this.isOnline,
+      lastSeen: lastSeen ?? this.lastSeen,
+      joinedAt: joinedAt ?? this.joinedAt,
+      permissions: permissions ?? this.permissions,
+    );
+  }
 }
 
 class GroupMessage {
@@ -784,9 +812,7 @@ class GroupMessage {
   final MessageType type;
   final Map<String, List<String>> reactions;
   final String? replyTo;
-  final List<String>? mentions;
-  final String? fileUrl;
-  final String? fileName;
+  final List<String>? attachments;
 
   GroupMessage({
     required this.id,
@@ -797,9 +823,7 @@ class GroupMessage {
     required this.type,
     this.reactions = const {},
     this.replyTo,
-    this.mentions,
-    this.fileUrl,
-    this.fileName,
+    this.attachments,
   });
 
   GroupMessage copyWith({
@@ -811,9 +835,7 @@ class GroupMessage {
     MessageType? type,
     Map<String, List<String>>? reactions,
     String? replyTo,
-    List<String>? mentions,
-    String? fileUrl,
-    String? fileName,
+    List<String>? attachments,
   }) {
     return GroupMessage(
       id: id ?? this.id,
@@ -824,9 +846,7 @@ class GroupMessage {
       type: type ?? this.type,
       reactions: reactions ?? this.reactions,
       replyTo: replyTo ?? this.replyTo,
-      mentions: mentions ?? this.mentions,
-      fileUrl: fileUrl ?? this.fileUrl,
-      fileName: fileName ?? this.fileName,
+      attachments: attachments ?? this.attachments,
     );
   }
 }
@@ -838,6 +858,7 @@ class GroupActivity {
   final String userId;
   final String userName;
   final DateTime timestamp;
+  final Map<String, dynamic>? metadata;
 
   GroupActivity({
     required this.id,
@@ -846,9 +867,26 @@ class GroupActivity {
     required this.userId,
     required this.userName,
     required this.timestamp,
+    this.metadata,
   });
+
+  GroupActivity copyWith({
+    String? id,
+    String? type,
+    String? description,
+    String? userId,
+    String? userName,
+    DateTime? timestamp,
+    Map<String, dynamic>? metadata,
+  }) {
+    return GroupActivity(
+      id: id ?? this.id,
+      type: type ?? this.type,
+      description: description ?? this.description,
+      userId: userId ?? this.userId,
+      userName: userName ?? this.userName,
+      timestamp: timestamp ?? this.timestamp,
+      metadata: metadata ?? this.metadata,
+    );
+  }
 }
-
-enum GroupStatus { active, archived, suspended }
-
-enum MessageType { text, file, image, system, announcement }

@@ -6,53 +6,78 @@ import 'package:get/get.dart';
 
 import 'controllers/form_builder.controller.dart';
 
-class FormBuilderScreen extends GetView<FormBuilderController> {
+class FormBuilderScreen extends StatefulWidget {
   const FormBuilderScreen({super.key});
 
   @override
+  State<FormBuilderScreen> createState() => _FormBuilderScreenState();
+}
+
+class _FormBuilderScreenState extends State<FormBuilderScreen>
+    with TickerProviderStateMixin {
+  late TabController _tabController;
+  final FormBuilderController controller = Get.find<FormBuilderController>();
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 4, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      body: Column(
-        children: [
-          // Header Section
-          _buildHeader(),
+    return GetBuilder<FormBuilderController>(
+      builder: (controller) {
+        return Container(
+          color: Colors.grey[50],
+          child: Column(
+            children: [
+              // Header Section
+              _buildHeader(),
 
-          // Tab Bar
-          _buildTabBar(),
+              // Tab Bar
+              _buildTabBar(),
 
-          // Content Area
-          Expanded(
-            child: Obx(() {
-              if (controller.isLoading.value) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 16),
-                      Text('Loading form builder...'),
-                    ],
-                  ),
-                );
-              }
+              // Content Area
+              Expanded(
+                child: Obx(() {
+                  if (controller.isLoading.value) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 16),
+                          Text('Loading form builder...'),
+                        ],
+                      ),
+                    );
+                  }
 
-              switch (controller.selectedTab.value) {
-                case 0:
-                  return FormTemplatesView();
-                case 1:
-                  return FormTemplatesView();
-                case 2:
-                  return FormPreviewView();
-                case 3:
-                  return SavedFormsView();
-                default:
-                  return FormTemplatesView();
-              }
-            }),
+                  switch (controller.selectedTab.value) {
+                    case 0:
+                      return FormTemplatesView();
+                    case 1:
+                      return FormTemplatesView();
+                    case 2:
+                      return FormPreviewView();
+                    case 3:
+                      return SavedFormsView();
+                    default:
+                      return FormTemplatesView();
+                  }
+                }),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -259,11 +284,8 @@ class FormBuilderScreen extends GetView<FormBuilderController> {
     return Container(
       color: Colors.white,
       child: TabBar(
-        controller: TabController(
-          length: tabs.length,
-          vsync: Scaffold.of(Get.context!),
-        ),
-        onTap: controller.changeTab,
+        controller: _tabController,
+        onTap: Get.find<FormBuilderController>().changeTab,
         labelColor: Colors.blue[600],
         unselectedLabelColor: Colors.grey[600],
         indicatorColor: Colors.blue[600],

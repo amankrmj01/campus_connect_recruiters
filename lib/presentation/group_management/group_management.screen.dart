@@ -31,26 +31,26 @@ class GroupManagementScreen extends GetView<GroupManagementController> {
             child: Obx(() {
               if (controller.selectedGroupId.value.isEmpty) {
                 return _buildWelcomeScreen();
-              } else {
-                return Row(
-                  children: [
-                    // Chat Area
-                    Expanded(flex: 3, child: GroupChatView()),
-
-                    // Group Info Panel
-                    Container(
-                      width: 300,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border(
-                          left: BorderSide(color: Colors.grey[200]!, width: 1),
-                        ),
-                      ),
-                      child: GroupMonitoringView(),
-                    ),
-                  ],
-                );
               }
+
+              return Row(
+                children: [
+                  // Chat Area
+                  Expanded(flex: 3, child: GroupChatView()),
+
+                  // Group Info Panel
+                  Container(
+                    width: 300,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border(
+                        left: BorderSide(color: Colors.grey[200]!, width: 1),
+                      ),
+                    ),
+                    child: GroupMonitoringView(),
+                  ),
+                ],
+              );
             }),
           ),
         ],

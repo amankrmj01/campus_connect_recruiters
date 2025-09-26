@@ -237,10 +237,10 @@ class JobListView extends GetView<JobManagementController> {
   }
 
   Widget _buildJobCard(JobPosting job) {
-    return Obx(
-      () => GestureDetector(
-        onTap: () => controller.selectJob(job.id),
-        child: Container(
+    return GestureDetector(
+      onTap: () => controller.selectJob(job.id),
+      child: Obx(
+        () => Container(
           margin: EdgeInsets.only(bottom: 12),
           padding: EdgeInsets.all(16),
           decoration: BoxDecoration(

@@ -7,48 +7,75 @@ import 'views/candidate_list_view.dart';
 import 'views/candidate_profile_view.dart';
 import 'views/shortlisting_panel_view.dart';
 
-class CandidateManagementScreen extends GetView<CandidateManagementController> {
+class CandidateManagementScreen extends StatefulWidget {
   const CandidateManagementScreen({super.key});
 
   @override
+  State<CandidateManagementScreen> createState() =>
+      _CandidateManagementScreenState();
+}
+
+class _CandidateManagementScreenState extends State<CandidateManagementScreen>
+    with TickerProviderStateMixin {
+  late TabController _tabController;
+  final CandidateManagementController controller =
+      Get.find<CandidateManagementController>();
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 4, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      body: Column(
-        children: [
-          // Header Section
-          _buildHeader(),
+    return GetBuilder<CandidateManagementController>(
+      builder: (controller) {
+        return Container(
+          color: Colors.grey[50],
+          child: Column(
+            children: [
+              // Header Section
+              _buildHeader(),
 
-          // Tab Bar
-          _buildTabBar(),
+              // Tab Bar
+              _buildTabBar(),
 
-          // Content Area
-          Expanded(
-            child: Obx(() {
-              if (controller.isLoading.value) {
-                return Center(child: CircularProgressIndicator());
-              }
+              // Content Area
+              Expanded(
+                child: Obx(() {
+                  if (controller.isLoading.value) {
+                    return Center(child: CircularProgressIndicator());
+                  }
 
-              if (controller.selectedCandidate.value != null) {
-                return CandidateProfileView();
-              }
+                  if (controller.selectedCandidate.value != null) {
+                    return CandidateProfileView();
+                  }
 
-              switch (controller.selectedTabIndex.value) {
-                case 0:
-                  return CandidateListView();
-                case 1:
-                  return ShortlistingPanelView();
-                case 2:
-                  return ApplicationReviewView();
-                case 3:
-                  return CandidateListView(showWatchlisted: true);
-                default:
-                  return CandidateListView();
-              }
-            }),
+                  switch (controller.selectedTabIndex.value) {
+                    case 0:
+                      return CandidateListView();
+                    case 1:
+                      return ShortlistingPanelView();
+                    case 2:
+                      return ApplicationReviewView();
+                    case 3:
+                      return CandidateListView(showWatchlisted: true);
+                    default:
+                      return CandidateListView();
+                  }
+                }),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -257,11 +284,8 @@ class CandidateManagementScreen extends GetView<CandidateManagementController> {
     return Container(
       color: Colors.white,
       child: TabBar(
-        controller: TabController(
-          length: tabs.length,
-          vsync: Scaffold.of(Get.context!),
-        ),
-        onTap: controller.changeTab,
+        controller: _tabController,
+        onTap: Get.find<CandidateManagementController>().changeTab,
         labelColor: Colors.blue[600],
         unselectedLabelColor: Colors.grey[600],
         indicatorColor: Colors.blue[600],
